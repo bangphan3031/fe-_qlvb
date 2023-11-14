@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { IconChecks, IconSearch, IconTrash } from '@tabler/icons';
+import { IconChecks, IconEdit, IconSearch, IconTrash } from '@tabler/icons';
 import { Button, FormControl, Grid, InputLabel, MenuItem, Select, TextField, Typography, useMediaQuery } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -290,22 +290,37 @@ export default function Xacminhvanbang() {
           {params.row.trangThai !== -1 ? (
             <Grid container spacing={1}>
               <Grid item>
-                <ActionButtons type="detail" detailvb handleGetbyId={handleDetail} params={params.row} />
+                <ActionButtons type="detail" handleGetbyId={handleDetail} params={params.row} />
               </Grid>
               <Grid item>
-                <CombinedActionButtons params={params.row} xacminhvb={xacminhvb} />
+                <CombinedActionButtons
+                  params={params.row}
+                  buttonConfigurations={xacminhvb}
+                  icon={IconChecks}
+                  title={t('button.title.xacminh')}
+                />
               </Grid>
               <Grid item>
-                <CombinedActionButtons params={params.row} chinhsuavb={chinhsuavb} />
+                <CombinedActionButtons
+                  params={params.row}
+                  buttonConfigurations={chinhsuavb}
+                  icon={IconEdit}
+                  title={t('button.title.chinhsua.huybo')}
+                />
               </Grid>
             </Grid>
           ) : (
             <Grid container spacing={1}>
               <Grid item>
-                <ActionButtons type="detail" detailvb handleGetbyId={handleDetail} params={params.row} />
+                <ActionButtons type="detail" handleGetbyId={handleDetail} params={params.row} />
               </Grid>
               <Grid item>
-                <CombinedActionButtons params={params.row} xacminhvb={xacminhvb1} />
+                <CombinedActionButtons
+                  params={params.row}
+                  buttonConfigurations={xacminhvb1}
+                  icon={IconChecks}
+                  title={t('button.title.chinhsua.huybo')}
+                />
               </Grid>
             </Grid>
           )}

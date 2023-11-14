@@ -157,3 +157,25 @@ export async function getByIdNamThi(idnam, maHtdt, nguoiThucHien) {
     throw error;
   }
 }
+
+export async function getAllFunction() {
+  try {
+    const response = await sendRequest(`Shared/GetAllFunction`, 'GET');
+    return response;
+  } catch (error) {
+    console.error('Error creating DanToc:', error);
+    throw error;
+  }
+}
+
+export async function getActionsByFunctionId(id) {
+  try {
+    store.dispatch(setLoading(true));
+    const response = await sendRequest(`Shared/GetActionsByFunctionId/${id}`, 'GET');
+    store.dispatch(setLoading(false));
+    return response;
+  } catch (error) {
+    console.error('Error creating DanhmucTN:', error);
+    throw error;
+  }
+}

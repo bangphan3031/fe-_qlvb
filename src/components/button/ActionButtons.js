@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Tooltip, ListItemIcon, MenuItem, Typography, IconButton } from '@mui/material';
+import { Tooltip, ListItemIcon, MenuItem, Typography, IconButton } from '@mui/material';
 import {
   IconEdit,
   IconUsers,
@@ -44,7 +44,6 @@ const ActionButtons = ({
   handleClick,
   params,
   title,
-  detailvb,
   handlePermission,
   handleGetbyId
 }) => {
@@ -194,6 +193,20 @@ const ActionButtons = ({
             color: 'info',
             onClick: () => {
               handleGetbyId(params);
+              if (onClose) {
+                onClose();
+              }
+            }
+          }
+        ];
+      case 'showvanbang':
+        return [
+          {
+            title: 'Xem văn bằng',
+            icon: <IconCertificate size={'20px'} />,
+            color: 'info',
+            onClick: () => {
+              handleClick(params);
               if (onClose) {
                 onClose();
               }
@@ -526,21 +539,9 @@ const ActionButtons = ({
             <>
               <AnimateButton>
                 <Tooltip title={t(button.title)} placement="bottom">
-                  {detailvb ? (
-                    <IconButton
-                      // color={button.color}
-                      key={index}
-                      onClick={button.onClick}
-                      style={{ border: '1px solid black' }}
-                      size="small"
-                    >
-                      {<VisibilityIcon fontSize="16px" />}
-                    </IconButton>
-                  ) : (
-                    <Button key={index} color={button.color} variant="outlined" size="small" onClick={button.onClick}>
-                      {button.icon}
-                    </Button>
-                  )}
+                  <IconButton color={button.color} key={index} onClick={button.onClick} style={{ border: '1px solid black' }} size="small">
+                    {<VisibilityIcon fontSize="small" />}
+                  </IconButton>
                 </Tooltip>
               </AnimateButton>
             </>

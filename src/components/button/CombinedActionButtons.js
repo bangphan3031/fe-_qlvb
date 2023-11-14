@@ -6,9 +6,7 @@ import { IconButton, Tooltip } from '@mui/material';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { useTranslation } from 'react-i18next';
 import ActionButtons from './ActionButtons';
-import ModeEditIcon from '@mui/icons-material/ModeEdit';
-import DoneAllIcon from '@mui/icons-material/DoneAll';
-const CombinedActionButtons = ({ params, buttonConfigurations, chinhsuavb, xacminhvb }) => {
+const CombinedActionButtons = ({ params, buttonConfigurations, title, icon: Icon }) => {
   const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
@@ -23,23 +21,14 @@ const CombinedActionButtons = ({ params, buttonConfigurations, chinhsuavb, xacmi
   return (
     <>
       <AnimateButton>
-        <Tooltip
-          title={chinhsuavb ? t('button.title.chinhsua.huybo') : xacminhvb ? t('button.title.xacminh') : t('label.action')}
-          placement="bottom"
-        >
+        <Tooltip title={title ? title : t('label.action')} placement="bottom">
           <IconButton
             // color={chinhsuavb ? 'primary' : xacminhvb ? 'success' : ''}
             onClick={handleClick}
             style={{ border: '1px solid black' }}
             size="small"
           >
-            {chinhsuavb ? (
-              <ModeEditIcon fontSize="small" />
-            ) : xacminhvb ? (
-              <DoneAllIcon fontSize="small" />
-            ) : (
-              <MoreHorizIcon fontSize="small" />
-            )}
+            {Icon ? <Icon fontSize="small" size="20px" /> : <MoreHorizIcon fontSize="small" />}
           </IconButton>
         </Tooltip>
       </AnimateButton>
@@ -58,17 +47,9 @@ const CombinedActionButtons = ({ params, buttonConfigurations, chinhsuavb, xacmi
           horizontal: 'right'
         }}
       >
-        {chinhsuavb
-          ? chinhsuavb.map((buttonConfig) => (
-              <ActionButtons menu key={buttonConfig.type} params={params} onClose={handleClose} {...buttonConfig} />
-            ))
-          : xacminhvb
-          ? xacminhvb.map((buttonConfig) => (
-              <ActionButtons menu key={buttonConfig.type} params={params} onClose={handleClose} {...buttonConfig} />
-            ))
-          : buttonConfigurations.map((buttonConfig) => (
-              <ActionButtons menu key={buttonConfig.type} params={params} onClose={handleClose} {...buttonConfig} />
-            ))}
+        {buttonConfigurations.map((buttonConfig) => (
+          <ActionButtons menu key={buttonConfig.type} params={params} onClose={handleClose} {...buttonConfig} />
+        ))}
       </Menu>
     </>
   );

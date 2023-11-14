@@ -18,6 +18,8 @@ import { IconFileExport, IconSearch } from '@tabler/icons';
 import * as XLSX from 'xlsx';
 import BackToTop from 'components/scroll/BackToTop';
 import ButtonSuccess from 'components/buttoncolor/ButtonSuccess';
+import { getActionsByFunctionId, getAllFunction } from 'services/sharedService';
+import { format, subMonths } from 'date-fns';
 const HistoryAccess = () => {
   const language = i18n.language;
   const { t } = useTranslation();
@@ -28,6 +30,8 @@ const HistoryAccess = () => {
   const reloadData = useSelector(reloadDataSelector);
   const [search, setSearch] = useState(false);
   const [data, setData] = useState([]);
+  const [functions, setFunctions] = useState('');
+  const [actions, setActions] = useState('');
   const [pageState, setPageState] = useState({
     isLoading: false,
     data: [],
@@ -36,10 +40,12 @@ const HistoryAccess = () => {
     orderDir: 'ASC',
     startIndex: 0,
     pageSize: 10,
-    fromDate: '',
-    toDate: '',
+    fromDate: format(subMonths(new Date(), 1), 'yyyy-MM-dd'),
+    toDate: format(new Date(), 'yyyy-MM-dd'),
     idUser: '',
-    userName: ''
+    userName: '',
+    function: '',
+    action: ''
   });
 
   const columns = [
@@ -64,14 +70,14 @@ const HistoryAccess = () => {
     },
     {
       flex: 1,
-      field: 'action',
-      headerName: t('Hành động'),
+      field: 'function',
+      headerName: t('Chức năng'),
       minWidth: 100
     },
     {
       flex: 1,
-      field: 'function',
-      headerName: t('Chức năng'),
+      field: 'action',
+      headerName: t('Hành động'),
       minWidth: 100
     },
     {
@@ -84,11 +90,53 @@ const HistoryAccess = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      const response = await GetAllUserInAccessHistory();
+      setData(response.data);
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const fetchDataDL = async () => {
+      const functions = await getAllFunction();
+      console.log(functions);
+      if (functions.data && functions.data.length > 0) {
+        setFunctions(functions.data);
+      } else {
+        setFunctions('');
+      }
+    };
+    fetchDataDL();
+  }, []);
+
+  useEffect(() => {
+    console.log(pageState.function);
+  }, [pageState.function]);
+
+  useEffect(() => {
+    const fetchDataDL = async () => {
+      const response = await getActionsByFunctionId(pageState.function);
+      if (response.data && response.data.length > 0) {
+        setActions(response.data);
+        setPageState((old) => ({ ...old, action: '' }));
+      } else {
+        setActions('');
+      }
+    };
+    if (pageState.function != '') {
+      fetchDataDL();
+    }
+  }, [pageState.function]);
+
+  useEffect(() => {
+    const fetchData = async () => {
       setPageState((old) => ({ ...old, isLoading: true }));
       const params = await createSearchParams(pageState);
       params.append('FromDate', pageState.fromDate);
       params.append('ToDate', pageState.toDate);
       params.append('userName', pageState.userName);
+      params.append('Function', pageState.function);
+      params.append('Action', pageState.action);
       const response = await getHistoryAccess(params);
       const check = handleResponseStatus(response, navigate);
       if (check) {
@@ -117,13 +165,6 @@ const HistoryAccess = () => {
   const handleSearch = () => {
     setSearch(true);
   };
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await GetAllUserInAccessHistory();
-      setData(response.data);
-    };
-    fetchData();
-  }, []);
 
   const handleExport = async (e) => {
     e.preventDefault();
@@ -136,6 +177,8 @@ const HistoryAccess = () => {
     params.append('FromDate', pageState.fromDate);
     params.append('ToDate', pageState.toDate);
     params.append('Username', pageState.userName);
+    params.append('Function', pageState.function);
+    params.append('Action', pageState.action);
     const response = await getHistoryAccess(params);
     const formattedData = response.data.map((item) => ({
       STT: item.rowIndex,
@@ -172,6 +215,8 @@ const HistoryAccess = () => {
     if (selectedUser) {
       const ten = selectedUser.userName;
       setPageState((old) => ({ ...old, userName: ten }));
+    } else {
+      setPageState((old) => ({ ...old, userName: '' }));
     }
   };
 
@@ -186,7 +231,49 @@ const HistoryAccess = () => {
         }
       >
         <Grid container justifyContent="center" mb={1} spacing={1}>
-          <Grid item maxWidth={200}>
+          <Grid item xs={2}>
+            <FormControl fullWidth variant="outlined" size="small">
+              <InputLabel>{t('Chức năng')}</InputLabel>
+              <Select
+                name="function"
+                value={pageState.function}
+                onChange={(e) => setPageState((old) => ({ ...old, function: e.target.value }))}
+                label={t('chức năng')}
+              >
+                {functions && functions.length > 0 ? (
+                  functions.map((data) => (
+                    <MenuItem key={data.functionId} value={data.functionId}>
+                      {data.description}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem value="">No data available</MenuItem>
+                )}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={2}>
+            <FormControl fullWidth variant="outlined" size="small">
+              <InputLabel>{t('Hành động')}</InputLabel>
+              <Select
+                label={t('Hành động')}
+                name="action"
+                value={pageState.action}
+                onChange={(e) => setPageState((old) => ({ ...old, action: e.target.value }))}
+              >
+                {actions && actions.length > 0 ? (
+                  actions.map((data) => (
+                    <MenuItem key={data.functionActionId} value={data.functionActionId}>
+                      {data.action}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem value="">{t('selected.nodata')}</MenuItem>
+                )}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={2}>
             <FormControl fullWidth variant="outlined" size="small">
               <InputLabel>Tài khoản </InputLabel>
               <Select
@@ -208,7 +295,7 @@ const HistoryAccess = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item maxWidth={140}>
+          <Grid item xs={2}>
             <FormControl fullWidth variant="outlined">
               <TextField
                 size="small"
@@ -228,7 +315,7 @@ const HistoryAccess = () => {
               />
             </FormControl>
           </Grid>
-          <Grid item maxWidth={140}>
+          <Grid item xs={2}>
             <FormControl fullWidth variant="outlined">
               <TextField
                 size="small"

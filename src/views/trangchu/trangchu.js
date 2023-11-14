@@ -1,6 +1,6 @@
 import { Button, Card, Grid, TextField, useMediaQuery } from '@mui/material';
 // import { Button, Grid, TextField, useMediaQuery } from '@mui/material';
-import { IconSearch } from '@tabler/icons';
+import { IconCertificate, IconEdit, IconSearch } from '@tabler/icons';
 import React from 'react';
 import ThongKeSoBangDaPhatChuaPhat from './SoBangDaPhatChuaPhat';
 import ThongKeSoLuongXepLoai from './SoLuongXepLoai';
@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import useLocalText from 'utils/localText';
 import { DataGrid } from '@mui/x-data-grid';
-import { selectedHocsinh, setInfoHocSinh, setOpenPopup, setReloadData } from 'store/actions';
+import { selectedHocsinh, setCapBangBanSao, setOpenPopup, setReloadData } from 'store/actions';
 import CombinedActionButtons from 'components/button/CombinedActionButtons';
 import i18n from 'i18n';
 import { createSearchParams } from 'utils/createSearchParams';
@@ -25,9 +25,13 @@ import BackToTop from 'components/scroll/BackToTop';
 import ThongKePhong from './ThongKePhong';
 import ThongKeTruong from './ThongKeTruong';
 import Popup from 'components/controls/popup';
-import EditHocSinh from 'views/hocsinh/Edit';
 import ActionButtons from 'components/button/ActionButtons';
 import '../../index.css';
+import ChinhSuaVBCC from 'views/chinhsuavbcc/ChinhSuaVBCC';
+import Thuhoihuybo from 'views/thuhoihuybo/Thuhoihuybo';
+import ShowVanBang from './ShowVanBang';
+import InBanSao from './InBanSao';
+import XacNhanIn from './XacNhanIn';
 
 // import { Component } from 'react';
 
@@ -67,11 +71,11 @@ const TrangChu = () => {
   const reloadData = useSelector(reloadDataSelector);
   const donvi = useSelector(donviSelector);
   const [search, setSearch] = useState(false);
-  const [disabledSearch, setDisabledSearch] = useState(true);
   const openPopup = useSelector(openPopupSelector);
   const [title, setTitle] = useState('');
   const [form, setForm] = useState('');
   const user = useSelector(userLoginSelector);
+  const [hsSoGoc, setHsSoGoc] = useState([]);
 
   const [pageState, setPageState] = useState({
     isLoading: false,
@@ -85,36 +89,59 @@ const TrangChu = () => {
     hoTen: ''
   });
 
-  const handleCapBanSao = (hocsinh) => {
-    navigate('/donyeucau');
-    dispatch(setInfoHocSinh(hocsinh));
+  const handleShowVanBang = (hocsinh) => {
+    setTitle(t('Thông tin văn bằng'));
+    setForm('showvanbang');
+    setHsSoGoc(hocsinh);
+    dispatch(setOpenPopup(true));
   };
 
-  const handleCapBang = (hocsinh) => {
-    navigate('/capbangbangoc');
-    dispatch(setInfoHocSinh(hocsinh));
-  };
-
-  const handleDuyet = (hocsinh) => {
-    navigate('/quanlyhocsinh');
-    dispatch(setInfoHocSinh(hocsinh));
-  };
-
-  const handleEdit = (hocsinh) => {
-    setTitle(t('hocsinh.title.edit'));
-    setForm('edit');
+  const handleChinhSuaVBCC = (hocsinh) => {
+    setTitle(t('Chỉnh sửa văn bằng chứng chỉ'));
+    setForm('chinhsuavbcc');
     dispatch(selectedHocsinh(hocsinh));
     dispatch(setOpenPopup(true));
   };
 
-  const buttonConfigurations = [
+  const handleThuHoiHuyBo = (hocsinh) => {
+    setTitle(t('Thu hồi hủy bỏ văn bằng chứng chỉ'));
+    setForm('thuhoi');
+    dispatch(selectedHocsinh(hocsinh));
+    dispatch(setOpenPopup(true));
+  };
+
+  const handlePreview = (donyeucau) => {
+    setTitle(t('In Bản sao '));
+    setForm('inbang');
+    dispatch(setCapBangBanSao(donyeucau));
+    dispatch(setOpenPopup(true));
+  };
+  const handleXacNhanIn = (donyeucau) => {
+    setTitle(t('Xác Nhận In'));
+    setForm('xacnhanin');
+    dispatch(setCapBangBanSao(donyeucau));
+    dispatch(setOpenPopup(true));
+  };
+
+  const capbangsao = [
     {
-      type: 'duyet',
-      handleClick: handleDuyet
+      type: 'capbansao',
+      handleClick: handlePreview
     },
     {
-      type: 'edit',
-      handleEdit: handleEdit
+      type: 'xacnhanin',
+      handleClick: handleXacNhanIn
+    }
+  ];
+
+  const chinhsuavb = [
+    {
+      type: 'chinhsuavbcc',
+      handleClick: handleChinhSuaVBCC
+    },
+    {
+      type: 'thuhoi',
+      handleClick: handleThuHoiHuyBo
     }
   ];
 
@@ -172,19 +199,32 @@ const TrangChu = () => {
     {
       field: 'actions',
       headerName: t('action'),
-      width: 90,
+      width: 110,
       sortable: false,
       filterable: false,
       renderCell: (params) => (
         <>
-          <Grid container justifyContent="center">
-            {params.row.trangThai == 2 || params.row.trangThai == 3 || params.row.trangThai == 4 ? (
-              <ActionButtons type="capbang" handleClick={handleCapBang} params={params.row} />
-            ) : params.row.trangThai == 5 || params.row.trangThai == 6 ? (
-              <ActionButtons type="capbansao" handleClick={handleCapBanSao} params={params.row} />
-            ) : (
-              <CombinedActionButtons params={params.row} buttonConfigurations={buttonConfigurations} />
-            )}
+          <Grid container justifyContent="center" spacing={1}>
+            <Grid item>
+              {params.row.donYeuCauCapBanSao != null ? (
+                <CombinedActionButtons
+                  params={params.row}
+                  buttonConfigurations={capbangsao}
+                  icon={IconCertificate}
+                  title={'Cấp bằng bản sao'}
+                />
+              ) : (
+                <ActionButtons type="showvanbang" handleClick={handleShowVanBang} params={params.row} />
+              )}
+            </Grid>
+            <Grid item>
+              <CombinedActionButtons
+                params={params.row}
+                buttonConfigurations={chinhsuavb}
+                icon={IconEdit}
+                title={t('button.title.chinhsua.huybo')}
+              />
+            </Grid>
           </Grid>
         </>
       )
@@ -198,12 +238,11 @@ const TrangChu = () => {
       params.append('cccd', pageState.cccd);
       params.append('hoTen', pageState.hoTen);
       params.append('nguoiThucHien', user ? user.username : '');
-
       const response = await GetTraCuuHocSinhTotNghiep(params);
       const check = handleResponseStatus(response, navigate);
       if (check) {
         const data = await response.data;
-        if (response.data && response.data.data.length > 0) {
+        if (response.data && response.data.hocSinhs.length > 0) {
           const trangThaiMapping = {
             1: t('Chưa duyệt'),
             2: t('Đã duyệt'),
@@ -212,7 +251,7 @@ const TrangChu = () => {
             5: t('Đã in bằng'),
             6: t('Đã phát bằng')
           };
-          const dataWithIds = data.data.map((row, index) => ({
+          const dataWithIds = data.hocSinhs.map((row, index) => ({
             idx: pageState.startIndex * pageState.pageSize + index + 1,
             soHieuVanBang: row.soHieuVanBang || 'Chưa cấp',
             soVaoSoCapBang: row.soVaoSoCapBang || 'Chưa cấp',
@@ -241,7 +280,7 @@ const TrangChu = () => {
       }
     };
     if (search || reloadData) {
-      if (pageState.cccd) {
+      if (pageState.cccd || pageState.hoTen) {
         fetchData();
       } else {
         setPageState((old) => ({
@@ -254,14 +293,6 @@ const TrangChu = () => {
       setSearch(false);
     }
   }, [reloadData, search]);
-
-  useEffect(() => {
-    if (pageState.cccd) {
-      setDisabledSearch(false);
-    } else {
-      setDisabledSearch(true);
-    }
-  }, [pageState.cccd]);
 
   const handleSearch = () => {
     setSearch(true);
@@ -315,7 +346,6 @@ const TrangChu = () => {
                       color="info"
                       sx={{ marginTop: '2px' }}
                       startIcon={<IconSearch />}
-                      disabled={disabledSearch}
                     >
                       {t('button.search')}
                     </Button>
@@ -370,7 +400,19 @@ const TrangChu = () => {
           )}
           {form !== '' && (
             <Popup title={title} form={form} openPopup={openPopup} maxWidth={'md'} bgcolor={'#2196F3'}>
-              {form === 'edit' ? <EditHocSinh /> : ''}
+              {form === 'showvanbang' ? (
+                <ShowVanBang duLieuHocSinh={hsSoGoc} />
+              ) : form === 'inbang' ? (
+                <InBanSao />
+              ) : form === 'xacnhanin' ? (
+                <XacNhanIn />
+              ) : form == 'chinhsuavbcc' ? (
+                <ChinhSuaVBCC />
+              ) : form == 'thuhoi' ? (
+                <Thuhoihuybo />
+              ) : (
+                ''
+              )}
             </Popup>
           )}
           <BackToTop />
